@@ -15,6 +15,13 @@
       "when": 1736885469028,
       "tag": "0001_nice_flatman",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1736886237834,
+      "tag": "0002_vengeful_justice",
+      "breakpoints": true
     }
   ]
 }

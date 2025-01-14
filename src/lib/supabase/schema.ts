@@ -1,6 +1,6 @@
 import { boolean, foreignKey, integer, jsonb, pgPolicy, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
-import { prices, subscriptionStatus, users } from "../../../migrations/schema";
 import { sql } from "drizzle-orm";
+import { prices, subscriptionStatus, users } from "../../../migrations/schema";
 
 export const workspaces = pgTable('workspaces', {
     id : uuid('id').defaultRandom().primaryKey().notNull(),
@@ -78,3 +78,4 @@ export const subscriptions = pgTable("subscriptions", {
         }),
     pgPolicy("Can only view own subs data.", { as: "permissive", for: "select", to: ["public"], using: sql`(( SELECT auth.uid() AS uid) = user_id)` }),
 ]);
+

@@ -1,4 +1,4 @@
-import { pgTable, uuid, timestamp, text, foreignKey, pgPolicy, jsonb, boolean, check, bigint, integer, pgEnum } from "drizzle-orm/pg-core"
+import { pgTable, foreignKey, uuid, timestamp, text, pgPolicy, jsonb, boolean, check, bigint, integer, pgEnum } from "drizzle-orm/pg-core"
 import { sql } from "drizzle-orm"
 
 export const pricingPlanInterval = pgEnum("pricing_plan_interval", ['day', 'week', 'month', 'year'])
@@ -6,17 +6,23 @@ export const pricingType = pgEnum("pricing_type", ['one_time', 'recurring'])
 export const subscriptionStatus = pgEnum("subscription_status", ['trialing', 'active', 'canceled', 'incomplete', 'incomplete_expired', 'past_due', 'unpaid'])
 
 
-export const workspaces = pgTable("workspaces", {
+export const folders = pgTable("folders", {
 	id: uuid().defaultRandom().primaryKey().notNull(),
 	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }),
-	workspaceOwner: uuid("workspace_owner").notNull(),
 	title: text().notNull(),
 	iconId: text("icon_id").notNull(),
 	data: text(),
 	inTrash: text("in_trash"),
 	logo: text(),
 	bannerUrl: text("banner_url"),
-});
+	workspaceId: uuid("workspace_id"),
+}, (table) => [
+	foreignKey({
+			columns: [table.workspaceId],
+			foreignColumns: [workspaces.id],
+			name: "folders_workspace_id_workspaces_id_fk"
+		}).onDelete("cascade"),
+]);
 
 export const files = pgTable("files", {
 	id: uuid().defaultRandom().primaryKey().notNull(),
@@ -42,30 +48,24 @@ export const files = pgTable("files", {
 		}).onDelete("cascade"),
 ]);
 
-export const folders = pgTable("folders", {
+export const workspaces = pgTable("workspaces", {
 	id: uuid().defaultRandom().primaryKey().notNull(),
 	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }),
+	workspaceOwner: uuid("workspace_owner").notNull(),
 	title: text().notNull(),
 	iconId: text("icon_id").notNull(),
 	data: text(),
 	inTrash: text("in_trash"),
 	logo: text(),
 	bannerUrl: text("banner_url"),
-	workspaceId: uuid("workspace_id"),
-}, (table) => [
-	foreignKey({
-			columns: [table.workspaceId],
-			foreignColumns: [workspaces.id],
-			name: "folders_workspace_id_workspaces_id_fk"
-		}).onDelete("cascade"),
-]);
+});
 
 export const users = pgTable("users", {
 	id: uuid().primaryKey().notNull(),
 	fullName: text("full_name"),
 	avatarUrl: text("avatar_url"),
-	billingAddress: jsonb("billing_address"),
 	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }),
+	billingAddress: jsonb("billing_address"),
 	paymentMethod: jsonb("payment_method"),
 	email: text(),
 }, (table) => [
@@ -75,7 +75,7 @@ export const users = pgTable("users", {
 			name: "users_id_fkey"
 		}),
 	pgPolicy("Can update own user data.", { as: "permissive", for: "update", to: ["public"], using: sql`(( SELECT auth.uid() AS uid) = id)` }),
-	pgPolicy("Every one can view own user data.", { as: "permissive", for: "select", to: ["public"] }),
+	pgPolicy("Can view own user data.", { as: "permissive", for: "select", to: ["public"] }),
 ]);
 
 export const customers = pgTable("customers", {

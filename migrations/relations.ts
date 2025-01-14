@@ -1,5 +1,18 @@
 import { relations } from "drizzle-orm/relations";
-import { folders, files, workspaces, usersInAuth, users, customers, products, prices, subscriptions } from "./schema";
+import { workspaces, folders, files, usersInAuth, users, customers, products, prices, subscriptions } from "./schema";
+
+export const foldersRelations = relations(folders, ({one, many}) => ({
+	workspace: one(workspaces, {
+		fields: [folders.workspaceId],
+		references: [workspaces.id]
+	}),
+	files: many(files),
+}));
+
+export const workspacesRelations = relations(workspaces, ({many}) => ({
+	folders: many(folders),
+	files: many(files),
+}));
 
 export const filesRelations = relations(files, ({one}) => ({
 	folder: one(folders, {
@@ -10,19 +23,6 @@ export const filesRelations = relations(files, ({one}) => ({
 		fields: [files.workspaceId],
 		references: [workspaces.id]
 	}),
-}));
-
-export const foldersRelations = relations(folders, ({one, many}) => ({
-	files: many(files),
-	workspace: one(workspaces, {
-		fields: [folders.workspaceId],
-		references: [workspaces.id]
-	}),
-}));
-
-export const workspacesRelations = relations(workspaces, ({many}) => ({
-	files: many(files),
-	folders: many(folders),
 }));
 
 export const usersRelations = relations(users, ({one}) => ({
